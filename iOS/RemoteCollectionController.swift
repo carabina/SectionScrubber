@@ -47,9 +47,11 @@ class RemoteCollectionController: UICollectionViewController {
     }
 
     override func viewDidLayoutSubviews() {
+        guard let collectionView = self.collectionView else { return }
+
         self.sectionScrubber.containingViewFrame = CGRectMake(0, 64, self.view.bounds.width, self.view.bounds.height - 64 - self.sectionScrubber.viewHeight)
-        self.sectionScrubber.containingViewContentSize = self.collectionView!.contentSize
-        self.sectionScrubber.updateFrame(scrollView: self.collectionView!)
+        self.sectionScrubber.containingViewContentSize = collectionView.contentSize
+        self.sectionScrubber.updateFrame(scrollView: collectionView)
     }
 
     func alertControllerWithTitle(title: String) -> UIAlertController {
@@ -90,16 +92,31 @@ extension RemoteCollectionController: SectionScrubberDelegate {
     override func scrollViewDidScroll(scrollView: UIScrollView){
         self.sectionScrubber.updateFrame(scrollView: scrollView)
 
-        let centerPoint = CGPoint(x: self.sectionScrubber.center.x + scrollView.contentOffset.x, y: self.sectionScrubber.center.y + scrollView.contentOffset.y);
-        if let indexPath = self.collectionView?.indexPathForItemAtPoint(centerPoint) {
-            self.sectionScrubber.updateSectionTitle(Photo.title(index: indexPath.section))
-        }
+        self.updateSectionScrubberTitle()
+
+
     }
 
     override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool){
-        let centerPoint = CGPoint(x: self.sectionScrubber.center.x + scrollView.contentOffset.x, y: self.sectionScrubber.center.y + scrollView.contentOffset.y);
-        if let indexPath = self.collectionView?.indexPathForItemAtPoint(centerPoint) {
+        self.updateSectionScrubberTitle()
+    }
+
+    func updateSectionScrubberTitle(){
+
+        guard let collectionView = self.collectionView else { return }
+
+        let centerPoint = CGPoint(x: self.sectionScrubber.center.x + collectionView.contentOffset.x, y: self.sectionScrubber.center.y + collectionView.contentOffset.y);
+
+        if let indexPath = collectionView.indexPathForItemAtPoint(centerPoint) {
             self.sectionScrubber.updateSectionTitle(Photo.title(index: indexPath.section))
+        }
+        
+        let layout = self.collectionView?.collectionViewLayout as! UICollectionViewFlowLayout
+
+        if sectionScrubber.frame.minY <= 64 {
+            self.sectionScrubber.updateSectionTitle(Photo.title(index: 0))
+        } else if sectionScrubber.frame.maxY + collectionView.contentOffset.y >= (collectionView.contentSize.height - layout.headerReferenceSize.height) {
+            self.sectionScrubber.updateSectionTitle(Photo.title(index: Photo.NumberOfSections-1))
         }
     }
 
@@ -110,6 +127,7 @@ extension RemoteCollectionController: SectionScrubberDelegate {
     }
 
     func sectionScrubberDidStopScrubbing(sectionScrubber: SectionScrubber) {
+        self.updateSectionScrubberTitle()
         UIView.animateWithDuration(0.2) {
             self.overlayView.alpha = 0
         }

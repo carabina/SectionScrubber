@@ -162,12 +162,7 @@ public class SectionScrubber: UIView {
 
     func calculateYPosInView(forYPosInContentView yPosInContentView: CGFloat) -> CGFloat {
         let percentageInContentView = yPosInContentView / self.containingViewContentSize.height
-        let y =  (containingViewFrame.height * percentageInContentView) + self.containingViewFrame.minY
-
-        if y > 508.589 && y < 509.6 {
-
-        }
-        return y
+        return (containingViewFrame.height * percentageInContentView) + self.containingViewFrame.minY
     }
 
     func calculateYPosInContentView(forYPosInView yPosInView: CGFloat) -> CGFloat {
